@@ -24,7 +24,7 @@ const AddTaskScreen: React.FC<Props> = ({navigation, addTask}) => {
   const [deadlineOpen, setDeadlineOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     const newTask: Task = {
       id: String(new Date().getTime()),
       name,
@@ -34,7 +34,7 @@ const AddTaskScreen: React.FC<Props> = ({navigation, addTask}) => {
       reminder: reminder.toISOString().split('T')[0],
     };
 
-    addTask(newTask);
+    await addTask(newTask);
     navigation.goBack();
   };
 
