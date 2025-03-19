@@ -13,4 +13,5 @@ export type Task = {
   category: TaskCategory;
   deadline: string;
   reminder: string;
+  userId?: string;
 };

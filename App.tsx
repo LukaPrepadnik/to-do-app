@@ -17,6 +17,8 @@ import {
   addDoc,
   deleteDoc,
   doc as FirebaseDoc,
+  query,
+  where,
 } from '@react-native-firebase/firestore';
 
 const Stack = createNativeStackNavigator();
@@ -35,20 +37,27 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const fetchTasks = async () => {
+      // Preveri, če je uporabnik prijavljen
+      if (!user) {
+        setTasks([]);
+        return;
+      }
+
       try {
         const db = getFirestore();
-        const tasksCollection = collection(db, 'tasks');
-        const taskSnapshot = await getDocs(tasksCollection);
-
+        // Ustvari poizvedbo, ki vrne samo opravila trenutnega uporabnika
+        const q = query(
+          collection(db, 'tasks'),
+          where('userId', '==', user.uid),
+        );
+        const taskSnapshot = await getDocs(q);
         if (taskSnapshot.empty) {
-          console.log('Zbirka "tasks" je prazna');
+          console.log('Uporabnik nima opravil');
         }
-
         const taskList = taskSnapshot.docs.map(doc => {
           console.log(doc.data());
           return {id: doc.id, ...doc.data()};
         });
-
         setTasks(taskList);
       } catch (error) {
         console.error('Napaka pri pridobivanju nalog:', error);
@@ -56,7 +65,7 @@ const App: React.FC = () => {
     };
 
     fetchTasks();
-  }, []);
+  }, [user]); // Dodaj user v dependency array, da se poizvedba osvežuje ob spremembi uporabnika
 
   console.log(tasks);
 
@@ -69,6 +78,7 @@ const App: React.FC = () => {
         category: newTask.category,
         deadline: newTask.deadline,
         reminder: newTask.reminder,
+        userId: newTask.userId,
       });
       setTasks(prevTasks => [...prevTasks, {...newTask, id: docRef.id}]);
       console.log('Task uspešno dodan v Firestore z ID:', docRef.id);

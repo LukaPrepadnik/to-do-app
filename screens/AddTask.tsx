@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import DatePicker from 'react-native-date-picker';
 import {Picker} from '@react-native-picker/picker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {TaskCategory, Task} from '../types';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 
 type Props = NativeStackScreenProps<any> & {
   addTask: (newTask: Task) => void;
@@ -24,6 +25,15 @@ const AddTaskScreen: React.FC<Props> = ({navigation, addTask}) => {
   const [deadlineOpen, setDeadlineOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
 
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(userState => {
+      setUser(userState);
+    });
+    return subscriber;
+  }, []);
+
   const handleAddTask = async () => {
     const newTask: Task = {
       id: String(new Date().getTime()),
@@ -32,7 +42,10 @@ const AddTaskScreen: React.FC<Props> = ({navigation, addTask}) => {
       category,
       deadline: deadline.toISOString().split('T')[0],
       reminder: reminder.toISOString().split('T')[0],
+      userId: user?.uid,
     };
+
+    console.log(newTask);
 
     await addTask(newTask);
     navigation.goBack();
