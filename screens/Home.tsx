@@ -10,8 +10,8 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Task} from '../types';
 import {RectButton, Swipeable} from 'react-native-gesture-handler';
-import React, {useState, useRef} from 'react';
-import auth from '@react-native-firebase/auth';
+import React, {useState, useRef, useEffect} from 'react';
+import messaging from '@react-native-firebase/messaging';
 
 type Props = NativeStackScreenProps<any> & {
   tasks: Task[];
@@ -21,7 +21,22 @@ type Props = NativeStackScreenProps<any> & {
 const HomeScreen: React.FC<Props> = ({navigation, tasks, deleteTask}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(
+    null,
+  );
   const swipeableRef = useRef<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      if (remoteMessage.notification) {
+        setNotificationMessage(
+          remoteMessage.notification.body || 'Novo sporočilo',
+        );
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   const confirmDelete = (id: string) => {
     setTaskToDelete(id);
@@ -47,14 +62,6 @@ const HomeScreen: React.FC<Props> = ({navigation, tasks, deleteTask}) => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await auth().signOut();
-    } catch (error) {
-      console.error('Napaka pri odjavi:', error);
-    }
-  };
-
   const renderRightAction = (taskId: string) => (
     <RectButton
       style={styles.deleteButton}
@@ -65,6 +72,12 @@ const HomeScreen: React.FC<Props> = ({navigation, tasks, deleteTask}) => {
 
   return (
     <View style={styles.container}>
+      {notificationMessage && (
+        <View style={styles.notificationBanner}>
+          <Text style={styles.notificationText}>{notificationMessage}</Text>
+        </View>
+      )}
+
       <FlatList
         data={tasks}
         keyExtractor={item => item.id}
@@ -92,9 +105,6 @@ const HomeScreen: React.FC<Props> = ({navigation, tasks, deleteTask}) => {
         title="Dodaj opravilo"
         onPress={() => navigation.navigate('AddTask')}
       />
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutTextButton}>
-        <Text style={styles.logoutText}>Odjava</Text>
-      </TouchableOpacity>
 
       <Modal
         animationType="fade"
@@ -129,6 +139,16 @@ const HomeScreen: React.FC<Props> = ({navigation, tasks, deleteTask}) => {
 
 const styles = StyleSheet.create({
   container: {flex: 1, padding: 20},
+  notificationBanner: {
+    backgroundColor: '#ffeb3b',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  notificationText: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
   taskItem: {
     padding: 15,
     backgroundColor: 'white',
@@ -145,13 +165,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   deleteText: {color: 'white', fontWeight: 'bold', padding: 10},
-  logoutButton: {
-    marginTop: 20,
-    backgroundColor: '#FF3B30',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -200,14 +213,6 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     color: 'white',
-  },
-  logoutTextButton: {
-    alignSelf: 'center',
-    marginTop: 20,
-  },
-  logoutText: {
-    color: 'red',
-    fontSize: 20,
   },
 });
 

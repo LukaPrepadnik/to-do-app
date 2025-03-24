@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 12,
+    padding: 5,
     marginBottom: 16,
     borderRadius: 12,
     fontSize: 16,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   dateInput: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 12,
+    padding: 5,
     borderRadius: 12,
     marginBottom: 16,
     backgroundColor: '#f9f9f9',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   addButtonText: {
     color: '#fff',
